@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Hotel Booking Prediction</title>
+    <style>
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f4f7f6;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 40px;
+    }
+
+    .container {
+        background-color: white;
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        width: 100%;
+        max-width: 600px;
+    }
+
+    h2 {
+        text-align: center;
+        color: #333;
+        margin-bottom: 30px;
+        border-bottom: 2px solid #4CAF50;
+        padding-bottom: 10px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #555;
+    }
+
+    input, select {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        box-sizing: border-box; /* بيمنع الـ input يخرج بره الـ container */
+        font-size: 14px;
+        transition: border-color 0.3s;
+    }
+
+    input:focus, select:focus {
+        outline: none;
+        border-color: #4CAF50;
+        box-shadow: 0 0 5px rgba(76, 175, 80, 0.2);
+    }
+
+    button {
+        width: 100%;
+        background-color: #4CAF50;
+        color: white;
+        padding: 15px;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        margin-top: 20px;
+    }
+
+    button:hover {
+        background-color: #45a049;
+    }
+
+    .prediction-text {
+        text-align: center;
+        margin-top: 20px;
+        font-size: 18px;
+        font-weight: bold;
+        color: #2e7d32;
+    }
+</style>
+</head>
+<body>
+
+    <h1>Hotel Booking Cancellation Prediction</h1>
+
+    <form action="/predict" method="POST">
+
+        <input type="number" name="number of adults" placeholder="Number of Adults" required>
+        <input type="number" name="number of children" placeholder="Number of Children" required>
+        <input type="number" name="number of week nights" placeholder="number of week nights" required>
+        <input type="number" name="number of weekend nights" placeholder="number of weekend nights" required>
+
+        <label>Date of Reservation:</label>
+        <input type="date" name="date of reservation" required>
+        <input type="number" name="car parking space" placeholder="Car Parking Space (0/1)" required>
+        <input type="number" step="0.01" name="lead time" placeholder="Lead Time" required>
+        <input type="number" name="repeated" placeholder="repeated" required>
+        <input type="number" name="P-C" placeholder="P-C" required>
+        <input type="number" name="P-not-C" placeholder="P-not-C" required>
+        <input type="number" step="0.01" name="average price" placeholder="Average Price" required>
+        <input type="number" name="special requests" placeholder="Special Requests" required>
+
+        <div class="form-group">
+        <label>Type of Meal:</label>
+        <select name="type of meal" required>
+            <option value="Meal Plan 1">Meal Plan 1</option>
+            <option value="Meal Plan 2">Meal Plan 2</option>
+            <option value="Meal Plan 2">Meal Plan 3</option>
+            <option value="Not Selected">Not Selected</option>
+        </select>
+    </div>
+
+
+       <div class="form-group">
+        <label>Room Type:</label>
+        <select name="room type" required>
+            <option value="Room_Type 1">Room_Type 1</option>
+            <option value="Room_Type 2">Room_Type 2</option>
+            <option value="Room_Type 3">Room_Type 2</option>
+            <option value="Room_Type 4">Room_Type 4</option>
+            <option value="Room_Type 5">Room_Type 5</option>
+            <option value="Room_Type 6">Room_Type 6</option>
+            <option value="Room_Type 7">Room_Type 7</option>
+        </select>
+    </div>
+
+        <div class="form-group">
+        <label>Market Segment Type:</label>
+        <select name="market segment type" required>
+            <option value="Online">Online</option>
+            <option value="Offline">Offline</option>
+            <option value="Corporate">Corporate</option>
+            <option value="Aviation">Aviation</option>
+            <option value="Complementary">Complementary</option>
+        </select>
+    </div>
+
+     
+        
+      
+        
+        <button type="submit">Predict</button>
+    </form>
+
+    {% if prediction %}
+        <h2>Prediction Result: {{ prediction }}</h2>
+    {% endif %}
+
+</body>
+</html>
