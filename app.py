@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import joblib
 from datetime import datetime
+import logging
 
 app = Flask(__name__)
 
@@ -12,6 +13,10 @@ scaler = joblib.load("models/scaler.pkl")
 rf_model = joblib.load("models/rf_model.pkl")
 dt_model=joblib.load("models/dt_model.pkl")
 knn=joblib.load("models/knn.pkl")
+
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
 
 @app.route("/")
 def home():
@@ -48,59 +53,41 @@ def predict():
     data['day'] = date_obj.day
     data['Year'] = date_obj.year
     data['Month'] = date_obj.month
-    data['Month_Name'] = date_obj.strftime('%B') # Month_Name اللي الموديل محتاجه
     data['Total_Guests'] = data['number of adults'] + data['number of children']
     data['Total_Nights'] = data['number of weekend nights'] + data['number of week nights']
 
 
-    for col in label_encoders:
-      
-      val = request.form.get(col)
-    
-    # تنظيف القيمة: إزالة أي مسافات في الأول أو الآخر وتوحيد حالة الأحرف
-    if isinstance(val, str):
-        val = val.strip() # ده هيشيل أي مسافة زيادة أنتِ مش شايفاها
-    
-    try:
-        # بنحول القيمة لـ List عشان الـ transform بيحتاج كده
-        if col != "booking status":
-         data[col] = label_encoders[col].transform([val])[0]
-    except ValueError:
-        # لو لسه مش لاقيها، اطبعي القيمة في الـ Terminal عشان نشوف الفرق
-        print(f"Mismatch found! Encoder expects categories: {label_encoders[col].classes_}")
-        print(f"But received value: '{val}'")
-        # حل مؤقت عشان البرنامج يكمل:
-        data[col] = 0
 
+     # ------------------- Clean and encode categorical columns -------------------
+    categorical_cols = ["type of meal", "room type", "market segment type"]
+    for col in categorical_cols:
+        data[col] = data[col].astype(str).str.strip()  # remove spaces
 
-    #encoded_cols = ["type of meal", "market segment type", "room type", "Month_Name"]
-    #for col in encoded_cols:
-        # strip() بتشيل أي مسافات مخفية مسببة الـ ValueError
-       ## val = str(data[col].iloc[0]).strip()
-      #  data[col] = label_encoders[col].transform([val])
+        try:
+            data[col] = label_encoders[col].transform(data[col])
+        except ValueError as e:
+            logging.warning(f"Encoding error in column '{col}': {e}")
+            # fallback to 0 if unseen value
+            data[col] = 0
+
 
     final_columns = [
-        "number of adults", "number of children", "number of weekend nights", 
-        "number of week nights", "type of meal", "car parking space", 
-        "room type", "lead time", "market segment type", "repeated", 
-        "P-C", "P-not-C", "average price", "special requests", 
-        "day", "Year", "Month", "Month_Name", "Total_Guests", "Total_Nights"
+    "number of adults","number of children","number of weekend nights",
+    "number of week nights","type of meal","car parking space","room type",
+    "lead time","market segment type","repeated","P-C","P-not-C","average price",
+    "special requests","day","Year","Month","Total_Guests","Total_Nights"
     ]
-    # إعادة ترتيب DataFrame بناءً على القائمة أعلاه
+            
     data = data[final_columns]
-      # Encoding
-    #for col in label_encoders:
-       # if col != "booking status":
-        #    data[col] = label_encoders[col].transform(data[col])
 
     data["lead time"] = data["lead time"].clip(upper=clip_values["lead_time_upper"])
     data["average price"] = data["average price"].clip(upper=clip_values["avg_price_upper"])
 
-    data_scaled = scaler.transform(data)
+    data_scaled = scaler.transform(data.values)
 
-    pred_rf = rf_model.predict(data_scaled)
-    pred_knn = knn.predict(data_scaled)
-    pred_dt = dt_model.predict(data_scaled)
+    pred_rf = rf_model.predict(data_scaled)[0]
+    pred_knn = knn.predict(data_scaled)[0]
+    pred_dt = dt_model.predict(data_scaled)[0]
 
     final_prediction = np.bincount([pred_rf, pred_knn, pred_dt]).argmax()
 
@@ -112,3 +99,7 @@ def predict():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
+    
+    
+    
